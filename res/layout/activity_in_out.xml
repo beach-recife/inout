@@ -4,15 +4,24 @@
     android:layout_height="match_parent"
     android:orientation="vertical"    
     tools:context=".InOutActivity" >
-    
-    <Button android:layout_width="fill_parent"
-  	    android:layout_height="wrap_content"
-  	    android:text="@string/button_in"
-  	    android:onClick="registerTime"/>    
+
+    <Button
+        android:id="@+id/button_in"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="registerTime"
+        android:text="@string/button_in" />    
 
     <TextView android:id="@+id/console"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/button_out"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="registerTime"
+        android:text="@string/button_out" />
     
 </LinearLayout>
 
