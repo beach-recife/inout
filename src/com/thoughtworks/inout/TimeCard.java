@@ -14,7 +14,7 @@ public class TimeCard {
 	
 	public Date punch(PunchType type) {
 		Date now = Clock.now();
-		dao.insertPunch(now, type);
+		dao.insertPunch(new Punch(type, now));
 		return now;
 	}
 
