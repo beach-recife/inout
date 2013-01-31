@@ -20,8 +20,9 @@ import com.thoughtworks.inout.PunchType;
 import com.thoughtworks.inout.exception.DataRetrieveException;
 
 public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO {
-	private static final String SQL_DATE_FORMAT = "yyyy-MM-dd";
-	private static final String SQL_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	
+	private final DateFormat sqlDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final DateFormat sqlDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	private static final String DB_NAME = "inout.db";
 	private static final int DB_VERSION = 1;
@@ -33,6 +34,7 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 		private static final String COL_TYPE = "type";
 	}
 
+	
 	private SQLiteDatabase db;
 
 	// Constructor to simplify Business logic access to the repository 
@@ -63,10 +65,9 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 	/* (non-Javadoc)
 	 * @see com.thoughtworks.inout.db.TimeCardDAO#insertPunch(java.util.Date, com.thoughtworks.inout.PunchType)
 	 */
-	public void insertPunch(Punch punch) {		
-		DateFormat dateFormat = new SimpleDateFormat(SQLLiteTimeCardDAO.SQL_DATETIME_FORMAT); 
+	public void insertPunch(Punch punch) {		 
 		ContentValues values = new ContentValues(); 
-		values.put("date", dateFormat.format(punch.getDate()));
+		values.put("date", sqlDateFormat.format(punch.getDate()));
 		values.put("type", punch.getType().toString().toLowerCase());
 		db.insert(TimeCardTable.NAME, null, values);
 	}
@@ -77,12 +78,11 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 				TimeCardTable.COL_DATE + ") as f_date from " +
 				TimeCardTable.NAME + " group by f_date order by " +
 				TimeCardTable.COL_DATE + " DESC", null);
-		DateFormat df = new SimpleDateFormat(SQLLiteTimeCardDAO.SQL_DATE_FORMAT);
 		if (c != null) {
 			if (c.moveToFirst()) {
 				while (!c.isAfterLast()) {					
 					try {
-						data.add(df.parse(c.getString(0)));
+						data.add(sqlDateTimeFormat.parse(c.getString(0)));
 					} catch (ParseException e) {
 						Log.e("SQLLiteTimeCardDAO", "Error while trying to parse \"" + c.getString(0) + "\".");
 						throw new DataRetrieveException("There was an error while trying to retrieve the data.");
@@ -94,11 +94,9 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 		return data.toArray(new Date[0]);
 	}
 	
-	public Punch[] getAllPunchesFor(Date d) {
+	@Override
+	public Punch[] getAllPunchesFor(Date d) throws DataRetrieveException {
 		Calendar cal = Calendar.getInstance();
-		DateFormat sqlDateFormat = new SimpleDateFormat(SQLLiteTimeCardDAO.SQL_DATE_FORMAT);
-		DateFormat sqlDateTimeFormat = new SimpleDateFormat(
-				SQLLiteTimeCardDAO.SQL_DATETIME_FORMAT);
 		cal.setTime(d);
 		cal.add(Calendar.DATE, 1);
 		String formattedDate = sqlDateFormat.format(d);
@@ -118,13 +116,37 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 						data.add(new Punch(PunchType.valueOf(c.getString(1).toUpperCase()),
 								sqlDateTimeFormat.parse(c.getString(0))));
 					} catch (ParseException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Log.e("SQLLiteTimeCardDAO", "Error while trying to parse \"" + c.getString(0) + "\".");
+						throw new DataRetrieveException("There was an error while trying to retrieve the data.");
 					}
 					c.moveToNext();
 				}
 			}
 		}
 		return data.toArray(new Punch[0]);
+	}
+
+	@Override
+	public Punch getLastPunch() throws DataRetrieveException {
+		String sql = String.format("select max(%s), %s from %s", TimeCardTable.COL_DATE,
+				TimeCardTable.COL_TYPE, TimeCardTable.NAME);
+	    Cursor c = this.db.rawQuery(sql, null);
+	    Punch punch = null;
+	    if (c != null) {
+			if (c.moveToFirst()) {
+				while (!c.isAfterLast()) {
+					try {
+						punch = new Punch(
+							PunchType.valueOf(c.getString(1).toUpperCase()),
+							sqlDateFormat.parse(c.getString(0)));
+					} catch (ParseException e) {
+						Log.e("SQLLiteTimeCardDAO", "Error while trying to parse \"" + c.getString(0) + "\".");
+						throw new DataRetrieveException("There was an error while trying to retrieve the data.");
+					}
+					c.moveToNext();
+				}
+			}
+		}
+	    return punch;
 	}
 }

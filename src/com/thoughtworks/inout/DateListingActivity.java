@@ -93,13 +93,19 @@ public class DateListingActivity extends ListActivity {
 	protected void onPrepareDialog(int id, Dialog dialog, Bundle args) {
 		ListView list = ((AlertDialog) dialog).getListView();
 		Date punchDate = new Date(args.getLong("punchDate"));
-		Punch[] punches = new SQLLiteTimeCardDAO(this).getAllPunchesFor(punchDate);
-		String[] formattedPunches = new String[punches.length];
-		for (int i = 0; i < punches.length; i++) {
-			formattedPunches[i] = punches[i].toString();
+		Punch[] punches;
+		try {
+			punches = new SQLLiteTimeCardDAO(this).getAllPunchesFor(punchDate);
+			String[] formattedPunches = new String[punches.length];
+			for (int i = 0; i < punches.length; i++) {
+				formattedPunches[i] = punches[i].toString();
+			}
+	        list.setAdapter(new ArrayAdapter<String>(this, 
+	            android.R.layout.simple_list_item_1, formattedPunches));
+		} catch (DataRetrieveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-        list.setAdapter(new ArrayAdapter<String>(this, 
-            android.R.layout.simple_list_item_1, formattedPunches));
 	}
 
 	@Override

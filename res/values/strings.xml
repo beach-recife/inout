@@ -8,5 +8,9 @@
     <string name="title_activity_date_listing">Punches</string>
     <string name="punches_alert_title">Punches</string>
     <string name="data_retrieve_error">It was not possible to retrieve the data.</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_punch">In! Out!</string>
+    <string name="punch_button_in">In</string>
+    <string name="punch_button_out">Out</string>
 
 </resources>
