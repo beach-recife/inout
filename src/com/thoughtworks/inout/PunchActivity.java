@@ -3,6 +3,7 @@ package com.thoughtworks.inout;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -15,7 +16,9 @@ import com.thoughtworks.inout.exception.DataRetrieveException;
 
 public class PunchActivity extends Activity {
 	
+	private final int CONFIRM_PUNCH_DIALOG = 1;
 	private final int ERROR_ALERT_DIALOG_ID = 0;
+	
 	private TimeCardDAO timeCardDAO;
 
 	@Override
@@ -28,9 +31,7 @@ public class PunchActivity extends Activity {
 		punchBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				timeCardDAO.insertPunch(new Punch(getCurrentPunchType(),
-						Clock.now()));
-				((Button) v).setText(getNextPunchType().getValue());
+				showDialog(CONFIRM_PUNCH_DIALOG);
 			}
 		});
 	}
@@ -78,6 +79,25 @@ public class PunchActivity extends Activity {
 		if (id == ERROR_ALERT_DIALOG_ID) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle("An Error Ocurred");			
+			diag = builder.create();
+		}
+		if (id == CONFIRM_PUNCH_DIALOG) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setCancelable(true);
+			builder.setMessage(getString(R.string.confirm_punch_message));
+			builder.setNegativeButton(getString(R.string.cancel_button), new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			});
+			builder.setPositiveButton(getString(R.string.ok_button), new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					timeCardDAO.insertPunch(new Punch(getCurrentPunchType(), Clock.now()));
+					((Button) PunchActivity.this.findViewById(R.id.punch_button)).setText(getNextPunchType().getValue());
+				}
+			});
 			diag = builder.create();
 		}
 		return diag;

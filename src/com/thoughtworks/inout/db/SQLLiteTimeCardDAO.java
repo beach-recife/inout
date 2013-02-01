@@ -34,7 +34,6 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 		private static final String COL_TYPE = "type";
 	}
 
-	
 	private SQLiteDatabase db;
 
 	// Constructor to simplify Business logic access to the repository 
@@ -60,7 +59,8 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 	}
 
 	@Override
-	public void onUpgrade(SQLiteDatabase arg0, int arg1, int arg2) {}
+	public void onUpgrade(SQLiteDatabase arg0, int arg1, int arg2) {
+	}
 
 	/* (non-Javadoc)
 	 * @see com.thoughtworks.inout.db.TimeCardDAO#insertPunch(java.util.Date, com.thoughtworks.inout.PunchType)
@@ -113,8 +113,10 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 			if (c.moveToFirst()) {
 				while (!c.isAfterLast()) {
 					try {
-						data.add(new Punch(PunchType.valueOf(c.getString(1).toUpperCase()),
-								sqlDateTimeFormat.parse(c.getString(0))));
+						if (!c.isNull(0)) {
+							data.add(new Punch(PunchType.valueOf(c.getString(1).toUpperCase()),
+									sqlDateTimeFormat.parse(c.getString(0))));
+						}
 					} catch (ParseException e) {
 						Log.e("SQLLiteTimeCardDAO", "Error while trying to parse \"" + c.getString(0) + "\".");
 						throw new DataRetrieveException("There was an error while trying to retrieve the data.");
@@ -136,9 +138,13 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 			if (c.moveToFirst()) {
 				while (!c.isAfterLast()) {
 					try {
-						punch = new Punch(
-							PunchType.valueOf(c.getString(1).toUpperCase()),
-							sqlDateFormat.parse(c.getString(0)));
+						String punchType = c.getString(1);
+						String date = c.getString(0);
+						if (punchType != null && date != null) {
+							punch = new Punch(
+									PunchType.valueOf(punchType.toUpperCase()),
+									sqlDateFormat.parse(date));
+						}
 					} catch (ParseException e) {
 						Log.e("SQLLiteTimeCardDAO", "Error while trying to parse \"" + c.getString(0) + "\".");
 						throw new DataRetrieveException("There was an error while trying to retrieve the data.");
@@ -149,4 +155,9 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 		}
 	    return punch;
 	}
+
+	public void clearDatabase() {
+		db.execSQL(String.format("DELETE * FROM %s", TimeCardTable.NAME));
+	}
+	
 }

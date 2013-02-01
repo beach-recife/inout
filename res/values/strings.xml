@@ -12,5 +12,8 @@
     <string name="title_activity_punch">In! Out!</string>
     <string name="punch_button_in">In</string>
     <string name="punch_button_out">Out</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="ok_button">OK</string>
+    <string name="confirm_punch_message">Do you want to confirm it?</string>
 
 </resources>
