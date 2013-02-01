@@ -11,5 +11,6 @@ public interface TimeCardDAO {
 	public abstract Date[] getAllRegisterDates() throws DataRetrieveException;
 	public abstract Punch getLastPunch() throws DataRetrieveException;
 	public abstract Punch[] getAllPunchesFor(Date d) throws DataRetrieveException;
-
+	public abstract void clearDatabase();
+	
 }
