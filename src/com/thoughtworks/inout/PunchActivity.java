@@ -1,13 +1,23 @@
 package com.thoughtworks.inout;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TimePicker;
 
 import com.thoughtworks.inout.clock.Clock;
 import com.thoughtworks.inout.db.SQLLiteTimeCardDAO;
@@ -16,8 +26,10 @@ import com.thoughtworks.inout.exception.DataRetrieveException;
 
 public class PunchActivity extends Activity {
 	
-	private final int CONFIRM_PUNCH_DIALOG = 1;
-	private final int ERROR_ALERT_DIALOG_ID = 0;
+	public static final int ERROR_ALERT_DIALOG_ID = 0;
+	public static final int CONFIRM_PUNCH_DIALOG = 1;
+	public static final int DATE_PICKER_ID = 2;
+	public static final int TIME_PICKER_ID = 3;
 	
 	private TimeCardDAO timeCardDAO;
 
@@ -31,7 +43,9 @@ public class PunchActivity extends Activity {
 		punchBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				showDialog(CONFIRM_PUNCH_DIALOG);
+				Bundle args = new Bundle();
+				args.putSerializable("punch_date", Clock.now());
+				showDialog(CONFIRM_PUNCH_DIALOG, args);
 			}
 		});
 	}
@@ -74,7 +88,7 @@ public class PunchActivity extends Activity {
 	}
 
 	@Override
-	protected Dialog onCreateDialog(int id, Bundle args) {
+	protected Dialog onCreateDialog(int id, final Bundle args) {
 		Dialog diag = null;
 		if (id == ERROR_ALERT_DIALOG_ID) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -82,9 +96,30 @@ public class PunchActivity extends Activity {
 			diag = builder.create();
 		}
 		if (id == CONFIRM_PUNCH_DIALOG) {
+			LinearLayout layout = new LinearLayout(this);
+			layout.setOrientation(LinearLayout.VERTICAL);
+			
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			Calendar punchDate = GregorianCalendar.getInstance();
+			punchDate.setTime((Date)args.getSerializable("punch_date"));
+			
 			builder.setCancelable(true);
-			builder.setMessage(getString(R.string.confirm_punch_message));
+			builder.setTitle(getString(R.string.confirm_punch_message));
+			
+			DatePicker datePicker = new DatePicker(this);
+			datePicker.setId(DATE_PICKER_ID);
+			datePicker.updateDate(punchDate.get(Calendar.YEAR), punchDate.get(Calendar.MONTH), punchDate.get(Calendar.DAY_OF_MONTH));
+			
+			TimePicker timePicker = new TimePicker(this);
+			timePicker.setId(TIME_PICKER_ID);
+			timePicker.setCurrentHour(punchDate.get(Calendar.HOUR_OF_DAY));
+			timePicker.setCurrentMinute(punchDate.get(Calendar.MINUTE));
+			timePicker.setIs24HourView(true);
+			
+			layout.addView(datePicker);
+			layout.addView(timePicker);
+			
+			builder.setView(layout);
 			builder.setNegativeButton(getString(R.string.cancel_button), new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -94,7 +129,7 @@ public class PunchActivity extends Activity {
 			builder.setPositiveButton(getString(R.string.ok_button), new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					timeCardDAO.insertPunch(new Punch(getCurrentPunchType(), Clock.now()));
+					timeCardDAO.insertPunch(new Punch(getCurrentPunchType(), (Date)args.getSerializable("punch_date")));
 					((Button) PunchActivity.this.findViewById(R.id.punch_button)).setText(getNextPunchType().getValue());
 				}
 			});

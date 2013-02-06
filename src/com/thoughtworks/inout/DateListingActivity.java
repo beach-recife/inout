@@ -9,8 +9,8 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.view.ContextThemeWrapper;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -106,6 +106,12 @@ public class DateListingActivity extends ListActivity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		// TODO Auto-generated method stub
+		return super.onMenuItemSelected(featureId, item);
 	}
 
 	@Override
