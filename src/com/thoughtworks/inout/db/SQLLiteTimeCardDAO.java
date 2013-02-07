@@ -67,6 +67,7 @@ public class SQLLiteTimeCardDAO extends SQLiteOpenHelper implements TimeCardDAO 
 	 */
 	public void insertPunch(Punch punch) {		 
 		ContentValues values = new ContentValues(); 
+		System.out.println("NO INSERT ################## "+punch.getDate().getYear() );
 		values.put("date", sqlDateFormat.format(punch.getDate()));
 		values.put("type", punch.getType().toString().toLowerCase());
 		db.insert(TimeCardTable.NAME, null, values);
